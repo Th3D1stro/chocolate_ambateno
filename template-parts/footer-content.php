@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $home_url  = home_url( '/' );
-$direccion = get_theme_mod( 'ambateno_contacto_direccion', 'Av. Cevallos 08-45 y Montalvo, Ambato, Tungurahua' );
-$telefono  = get_theme_mod( 'ambateno_contacto_telefono', '+593 3 000 0000' );
-$correo    = get_theme_mod( 'ambateno_contacto_correo', 'hola@elambateno.ec' );
+$direccion = get_theme_mod( 'ambateno_contacto_direccion', 'Parque Industrial Ambato, Avenida D entre las calles Tercera y Cuarta, Lote 5 Ambato, Ecuador' );
+$telefono  = get_theme_mod( 'ambateno_contacto_telefono', '(+593) 99 393 1813' );
+$correo    = get_theme_mod( 'ambateno_contacto_correo', 'chocolateelambatenio@gmail.com' );
 $enlace_clase = 'inline-flex min-h-11 items-center text-crema/90 underline-offset-4 hover:text-crema hover:underline';
 
 $secciones = array(

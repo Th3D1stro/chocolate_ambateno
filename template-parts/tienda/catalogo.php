@@ -14,6 +14,8 @@ $categorias = array(
 	'sin-gluten'  => __( 'Sin gluten', 'chocolate-el-ambateno' ),
 	'sin-azucar'  => __( 'Sin azúcar', 'chocolate-el-ambateno' ),
 	'express'     => __( 'Express', 'chocolate-el-ambateno' ),
+	'sabores' => __('Sabores', 'chocolate-el-ambateno'),
+	'reposteria' => __('Reposteria', 'chocolate-el-ambateno'),
 );
 ?>
 <section aria-labelledby="titulo-catalogo" class="flex flex-col gap-6">
