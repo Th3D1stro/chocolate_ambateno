@@ -18,7 +18,7 @@ $secciones = array(
 	'chocolate'   => __( 'Nuestro chocolate', 'chocolate-el-ambateno' ),
 	'preparacion' => __( 'Preparación', 'chocolate-el-ambateno' ),
 	'historia'    => __( 'Nuestra historia', 'chocolate-el-ambateno' ),
-	'donde'       => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ),
+	// 'donde'       => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ),
 	'contacto'    => __( 'Contacto', 'chocolate-el-ambateno' ),
 );
 ?>
@@ -48,8 +48,28 @@ $secciones = array(
 				?>
 			</nav>
 
-			<!-- Acciones: Carrito y botón móvil -->
+			<!-- Acciones: Carrito, Usuario / Auth y botón móvil -->
 			<div class="flex items-center gap-2">
+				<!-- Botón / Widget de Usuario Autenticado -->
+				<div id="nav-user-container" class="relative flex items-center shrink-0">
+					<!-- Estado NO autenticado: Botón para abrir modal de registro / login -->
+					<button type="button" id="btn-open-auth" class="inline-flex min-h-11 items-center gap-1.5 rounded-md border-2 border-crema/40 px-3 py-1.5 text-sm font-semibold text-crema transition-colors hover:border-crema hover:bg-crema/10 focus-visible:outline-none" aria-label="<?php esc_attr_e( 'Iniciar sesión o registrarse', 'chocolate-el-ambateno' ); ?>">
+						<?php ambateno_icon( 'user', 'h-4 w-4' ); ?>
+						<span class="hidden md:inline"><?php esc_html_e( 'Ingresar', 'chocolate-el-ambateno' ); ?></span>
+					</button>
+
+					<!-- Estado AUTENTICADO: Badge con icono de usuario, nombre y opción de cerrar sesión -->
+					<div id="nav-user-logged" class="hidden items-center gap-1.5 sm:gap-2" style="display: none;" hidden>
+						<div class="flex items-center gap-1.5 rounded-md border border-oliva/50 bg-burdeos-oscuro/80 px-2.5 py-1.5 text-sm text-crema">
+							<span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-oliva text-tinta font-bold text-xs shrink-0" id="user-avatar-initial">U</span>
+							<span id="user-display-name" class="max-w-[120px] truncate font-medium text-xs sm:text-sm">Usuario</span>
+						</div>
+						<button type="button" id="btn-logout" class="inline-flex h-9 w-9 items-center justify-center rounded-md text-crema/80 transition-colors hover:bg-burdeos-claro hover:text-crema shrink-0" title="<?php esc_attr_e( 'Cerrar sesión', 'chocolate-el-ambateno' ); ?>" aria-label="<?php esc_attr_e( 'Cerrar sesión', 'chocolate-el-ambateno' ); ?>">
+							<?php ambateno_icon( 'log-out', 'h-4 w-4' ); ?>
+						</button>
+					</div>
+				</div>
+
 				<a href="<?php echo esc_url( $tienda_url ); ?>" class="relative inline-flex min-h-11 items-center gap-2 rounded-md border-2 border-crema/60 px-3 font-semibold text-crema transition-colors hover:bg-crema hover:text-burdeos" aria-label="<?php esc_attr_e( 'Ir a la tienda', 'chocolate-el-ambateno' ); ?>" id="btn-tienda-navbar">
 					<?php ambateno_icon( 'shopping-bag', 'h-5 w-5' ); ?>
 					<span class="hidden sm:inline"><?php esc_html_e( 'Tienda', 'chocolate-el-ambateno' ); ?></span>

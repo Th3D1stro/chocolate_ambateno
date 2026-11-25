@@ -1,8 +1,8 @@
 /**
  * Lógica completa de la Tienda y Checkout SPA para Chocolate El Ambateño.
  * Controla:
- * - Catálogo interactivo con buscador en tiempo real, filtro por 5 categorías oficiales
- *   (Ver todo 'todo', Chocolate negro 'negro', Sin azúcar 'sin-azucar', Snacks 'snacks', Regalos 'regalos', Línea profesional 'profesional'), orden y paginación.
+ * - Catálogo interactivo con buscador en tiempo real, filtro por categorías oficiales
+ *   (Ver todo 'todo', Sin gluten 'sin-gluten', Sin azúcar 'sin-azucar', Express 'express'), orden y paginación.
  * - Modal de Vista Rápida con tabla nutricional y selector de cantidad.
  * - Panel lateral de resumen del carrito.
  * - Checkout por pasos (Tienda > Carrito > Envío > Pago > Confirmación).

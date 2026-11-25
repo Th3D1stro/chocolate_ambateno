@@ -145,4 +145,239 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // 4. Sistema simulado de registro e inicio de sesión
+  const AUTH_STORAGE_KEY = 'el-ambateno-auth-user';
+  const modalAuth = document.getElementById('modal-auth');
+  const btnOpenAuth = document.getElementById('btn-open-auth');
+  const btnCloseAuth = document.getElementById('btn-cerrar-auth');
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const formLogin = document.getElementById('form-auth-login');
+  const formRegister = document.getElementById('form-auth-register');
+  const authAlert = document.getElementById('auth-alert');
+  const navUserLogged = document.getElementById('nav-user-logged');
+  const userDisplayName = document.getElementById('user-display-name');
+  const userAvatarInitial = document.getElementById('user-avatar-initial');
+  const btnLogout = document.getElementById('btn-logout');
+
+  function getLoggedUser() {
+    try {
+      const data = localStorage.getItem(AUTH_STORAGE_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setLoggedUser(user) {
+    try {
+      if (user) {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+      }
+    } catch (e) {}
+    updateAuthUI();
+  }
+
+  function updateAuthUI() {
+    const user = getLoggedUser();
+    if (user && user.nombre) {
+      if (btnOpenAuth) {
+        btnOpenAuth.classList.add('hidden');
+        btnOpenAuth.style.setProperty('display', 'none', 'important');
+        btnOpenAuth.setAttribute('hidden', '');
+      }
+      if (navUserLogged) {
+        navUserLogged.classList.remove('hidden');
+        navUserLogged.style.setProperty('display', 'flex', 'important');
+        navUserLogged.removeAttribute('hidden');
+      }
+      if (userDisplayName) {
+        const primerNombre = user.nombre.split(' ')[0] || user.nombre;
+        userDisplayName.textContent = primerNombre;
+        userDisplayName.title = `${user.nombre} (${user.email || ''})`;
+      }
+      if (userAvatarInitial) {
+        userAvatarInitial.textContent = (user.nombre.charAt(0) || 'U').toUpperCase();
+      }
+    } else {
+      if (btnOpenAuth) {
+        btnOpenAuth.classList.remove('hidden');
+        btnOpenAuth.style.removeProperty('display');
+        btnOpenAuth.removeAttribute('hidden');
+      }
+      if (navUserLogged) {
+        navUserLogged.classList.add('hidden');
+        navUserLogged.style.setProperty('display', 'none', 'important');
+        navUserLogged.setAttribute('hidden', '');
+      }
+    }
+  }
+
+  function showAuthAlert(msg, type = 'error') {
+    if (!authAlert) return;
+    authAlert.textContent = msg;
+    authAlert.className = `mt-4 rounded-xl p-3 text-sm font-medium ${
+      type === 'success' ? 'bg-oliva-claro text-tinta border border-oliva' : 'bg-burdeos/10 text-burdeos border border-burdeos/30'
+    }`;
+    authAlert.classList.remove('hidden');
+  }
+
+  function hideAuthAlert() {
+    if (authAlert) authAlert.classList.add('hidden');
+  }
+
+  function switchTab(mode) {
+    hideAuthAlert();
+    if (mode === 'register') {
+      tabRegister.classList.add('bg-burdeos', 'text-crema', 'shadow-xs');
+      tabRegister.classList.remove('text-burdeos');
+      tabRegister.setAttribute('aria-selected', 'true');
+
+      tabLogin.classList.remove('bg-burdeos', 'text-crema', 'shadow-xs');
+      tabLogin.classList.add('text-burdeos');
+      tabLogin.setAttribute('aria-selected', 'false');
+
+      formLogin.classList.add('hidden');
+      formRegister.classList.remove('hidden');
+    } else {
+      tabLogin.classList.add('bg-burdeos', 'text-crema', 'shadow-xs');
+      tabLogin.classList.remove('text-burdeos');
+      tabLogin.setAttribute('aria-selected', 'true');
+
+      tabRegister.classList.remove('bg-burdeos', 'text-crema', 'shadow-xs');
+      tabRegister.classList.add('text-burdeos');
+      tabRegister.setAttribute('aria-selected', 'false');
+
+      formRegister.classList.add('hidden');
+      formLogin.classList.remove('hidden');
+    }
+  }
+
+  function openAuthModal(mode = 'login') {
+    if (!modalAuth) return;
+    switchTab(mode);
+    modalAuth.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAuthModal() {
+    if (!modalAuth) return;
+    modalAuth.classList.add('hidden');
+    document.body.style.overflow = '';
+    hideAuthAlert();
+  }
+
+  if (btnOpenAuth) {
+    btnOpenAuth.addEventListener('click', () => openAuthModal('login'));
+  }
+  if (btnCloseAuth) {
+    btnCloseAuth.addEventListener('click', closeAuthModal);
+  }
+  if (modalAuth) {
+    const backdrop = modalAuth.querySelector('.auth-backdrop');
+    if (backdrop) backdrop.addEventListener('click', closeAuthModal);
+    modalAuth.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAuthModal();
+    });
+  }
+
+  if (tabLogin) tabLogin.addEventListener('click', () => switchTab('login'));
+  if (tabRegister) tabRegister.addEventListener('click', () => switchTab('register'));
+
+  // Manejo de Registro
+  if (formRegister) {
+    formRegister.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+
+      if (!nombre || !email || !password) {
+        showAuthAlert('Por favor completa todos los campos requeridos.', 'error');
+        return;
+      }
+      if (password.length < 4) {
+        showAuthAlert('La contraseña debe tener al menos 4 caracteres.', 'error');
+        return;
+      }
+
+      // Guardar lista de usuarios registrados simulados
+      let usuarios = [];
+      try {
+        usuarios = JSON.parse(localStorage.getItem('el-ambateno-users-db') || '[]');
+      } catch (err) {
+        usuarios = [];
+      }
+
+      const existe = usuarios.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (existe) {
+        showAuthAlert('Este correo ya se encuentra registrado. Inicia sesión.', 'error');
+        return;
+      }
+
+      usuarios.push({ nombre, email, password });
+      try {
+        localStorage.setItem('el-ambateno-users-db', JSON.stringify(usuarios));
+      } catch (err) {}
+
+      // Iniciar sesión automáticamente
+      setLoggedUser({ nombre, email });
+      showAuthAlert('¡Cuenta creada con éxito! Bienvenido.', 'success');
+      setTimeout(() => {
+        closeAuthModal();
+        formRegister.reset();
+      }, 1200);
+    });
+  }
+
+  // Manejo de Login
+  if (formLogin) {
+    formLogin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      let usuarios = [];
+      try {
+        usuarios = JSON.parse(localStorage.getItem('el-ambateno-users-db') || '[]');
+      } catch (err) {
+        usuarios = [];
+      }
+
+      // Si no hay usuarios en la base simulada, permitir credenciales de demostración
+      let usuario = usuarios.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+      if (!usuario && email && password) {
+        // Permitir acceso de demostración con cualquier contraseña si se prueba directamente
+        const nombreDemo = email.split('@')[0].replace(/[._-]/g, ' ');
+        usuario = {
+          nombre: nombreDemo.charAt(0).toUpperCase() + nombreDemo.slice(1),
+          email: email
+        };
+      }
+
+      if (usuario) {
+        setLoggedUser(usuario);
+        showAuthAlert(`¡Hola de nuevo, ${usuario.nombre.split(' ')[0]}!`, 'success');
+        setTimeout(() => {
+          closeAuthModal();
+          formLogin.reset();
+        }, 800);
+      } else {
+        showAuthAlert('Credenciales incorrectas. Verifica tu correo y contraseña.', 'error');
+      }
+    });
+  }
+
+  // Manejo de Logout
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      setLoggedUser(null);
+    });
+  }
+
+  // Inicializar estado de autenticación al cargar la página
+  updateAuthUI();
 });

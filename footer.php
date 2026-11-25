@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <?php get_template_part( 'template-parts/footer-content' ); ?>
 <?php get_template_part( 'template-parts/modal-sitemap' ); ?>
+<?php get_template_part( 'template-parts/modal-auth' ); ?>
 
 <?php wp_footer(); ?>
 </body>

@@ -17,7 +17,7 @@ get_header();
 	<?php get_template_part( 'template-parts/landing/chocolate' ); ?>
 	<?php get_template_part( 'template-parts/landing/preparacion' ); ?>
 	<?php get_template_part( 'template-parts/landing/historia' ); ?>
-	<?php get_template_part( 'template-parts/landing/donde' ); ?>
+	<?php // get_template_part( 'template-parts/landing/donde' ); // Oculto de la interfaz manteniendo datos intactos ?>
 	<?php get_template_part( 'template-parts/landing/contacto' ); ?>
 </main>
 

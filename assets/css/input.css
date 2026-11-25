@@ -32,9 +32,9 @@
   --color-input: #e2b89b;
   --color-ring: #a1551e;
 
-  /* Tipografías: display serif con carácter + sans legible */
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-sans: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Tipografías: Poppins unificada (700 títulos, 400 textos) */
+  --font-display: "Poppins", system-ui, -apple-system, sans-serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
 
   /* Breakpoint extra de 480 px */
   --breakpoint-xs: 30rem;
@@ -165,4 +165,15 @@ section[id] {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Auth widget toggle */
+#btn-open-auth[hidden],
+#btn-open-auth.hidden {
+  display: none !important;
+}
+
+#nav-user-logged[hidden],
+#nav-user-logged.hidden {
+  display: none !important;
 }

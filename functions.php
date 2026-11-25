@@ -10,7 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Constantes del tema
-define( 'AMBATENO_VERSION', '1.0.0' );
+define( 'AMBATENO_VERSION', '1.1.0' );
+define( 'AMBATENO_CATALOG_VERSION', '2.0.0' );
 define( 'AMBATENO_DIR', get_template_directory() );
 define( 'AMBATENO_URI', get_template_directory_uri() );
 
