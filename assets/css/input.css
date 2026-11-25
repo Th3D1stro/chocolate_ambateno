@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@source "../../**/*.php";
+@source "../../**/*.js";
+
+@theme {
+  /* ===== Paleta de marca El Ambateño ===== */
+  --color-burdeos: #7a1714;
+  --color-burdeos-oscuro: #5c100e;
+  --color-burdeos-claro: #93302b;
+  --color-crema: #f0d1bc;
+  --color-crema-claro: #faf0e8;
+  --color-crema-oscuro: #e2b89b;
+  --color-oliva: #999f3b;
+  --color-oliva-claro: #e4e6c3;
+  --color-caramelo: #a1551e;
+  --color-caramelo-oscuro: #7f4116;
+  --color-tinta: #2b0a08;
+
+  /* Tokens semánticos mapeados a la paleta */
+  --color-primary: #7a1714;
+  --color-primary-foreground: #f0d1bc;
+  --color-secondary: #a1551e;
+  --color-secondary-foreground: #ffffff;
+  --color-destructive: #7a1714;
+  --color-destructive-foreground: #f0d1bc;
+  --color-muted: #faf0e8;
+  --color-muted-foreground: #5c100e;
+  --color-accent: #999f3b;
+  --color-accent-foreground: #2b0a08;
+  --color-border: #e2b89b;
+  --color-input: #e2b89b;
+  --color-ring: #a1551e;
+
+  /* Tipografías: display serif con carácter + sans legible */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Breakpoint extra de 480 px */
+  --breakpoint-xs: 30rem;
+
+  /* Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* Base resets */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Globales del proyecto original */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-crema-claro, #faf0e8);
+  color: var(--color-tinta, #2b0a08);
+  font-family: var(--font-sans, "Work Sans", system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Compensación de admin-bar de WordPress para el navbar sticky */
+body.admin-bar header.sticky {
+  top: 32px;
+}
+@media screen and (max-width: 782px) {
+  body.admin-bar header.sticky {
+    top: 46px;
+  }
+}
+
+/* Compensa la altura del navbar + migas al saltar a una sección */
+section[id] {
+  scroll-margin-top: 7.5rem;
+}
+
+/* Focus ring visible de 3 px */
+:focus-visible {
+  outline: 3px solid var(--color-caramelo, #a1551e);
+  outline-offset: 3px;
+}
+
+.on-dark :focus-visible {
+  outline-color: var(--color-oliva, #999f3b);
+}
+
+/* Texturas de puntos en la paleta */
+.patron-puntos {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-caramelo, #a1551e) 16%, transparent) 1.2px,
+    transparent 1.4px
+  );
+  background-size: 22px 22px;
+}
+
+.patron-puntos-oscuro {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-crema, #f0d1bc) 9%, transparent) 1.2px,
+    transparent 1.4px
+  );
+  background-size: 24px 24px;
+}
+
+/* Animación de entrada al viewport (.reveal) */
+.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+
+.reveal-ready .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes aviso-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.aviso-entrada {
+  animation: aviso-entrada 0.3s ease-out;
+}
+
+/* Quita las flechas nativas del input numérico */
+.sin-flechas::-webkit-inner-spin-button,
+.sin-flechas::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sin-flechas {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Accesibilidad: respeto a prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal-ready .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
