@@ -58,7 +58,7 @@ function ambateno_fallback_menu_principal() {
 		'chocolate'   => __( 'Nuestro chocolate', 'chocolate-el-ambateno' ),
 		'preparacion' => __( 'Preparación', 'chocolate-el-ambateno' ),
 		'historia'    => __( 'Nuestra historia', 'chocolate-el-ambateno' ),
-		'donde'       => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ),
+		// 'donde'    => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ), // Oculto de la interfaz visual
 		'contacto'    => __( 'Contacto', 'chocolate-el-ambateno' ),
 	);
 

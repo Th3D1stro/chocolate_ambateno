@@ -64,6 +64,8 @@ function ambateno_get_icon( $name, $class = 'h-5 w-5', $aria_hidden = true ) {
 		'trash-2'             => '<path d="3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
 		'truck'               => '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
 		'users'               => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+		'user'                => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+		'log-out'             => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
 		'wheat-off'           => '<path d="m2 2 20 20"/><path d="M7.4 7.4A6.002 6.002 0 0 0 12 18V2"/><path d="M12 6a6 6 0 0 1 6 6c0 1.25-.38 2.41-1.03 3.38"/><path d="M8.5 13.5a6 6 0 0 1-2.92-2.92"/><path d="M15.5 10.5a6 6 0 0 0-3.5-3.5"/>',
 		'x'                   => '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
 	);

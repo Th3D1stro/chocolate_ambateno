@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $theme_uri    = get_template_directory_uri();
 $titulo       = get_theme_mod( 'ambateno_historia_titulo', 'Nuestra historia' );
 $p1           = get_theme_mod( 'ambateno_historia_p1', 'El Ambateño nació en una cocina familiar de Ambato, la tierra de las flores y las frutas, donde el chocolate de taza siempre acompañó las tardes frías de la sierra. Quisimos conservar esa receta y hacerla apta para todos: sin azúcar y libre de gluten.' );
-$p2           = get_theme_mod( 'ambateno_historia_p2', 'Trabajamos de la mano de INPHEC para cuidar cada etapa del proceso, desde la selección del grano hasta el empaque. [Describe aquí la relación real de la marca con INPHEC: certificación, acompañamiento técnico o programa de emprendimiento.]' );
+$p2           = get_theme_mod( 'ambateno_historia_p2', 'Trabajamos de la mano de INPHEC para cuidar cada etapa del proceso, desde la selección del grano hasta el empaque. ' );
 $cita         = get_theme_mod( 'ambateno_historia_cita', '“Hacemos el chocolate que nos gustaría compartir con nuestra familia.”' );
 $historia_img = get_theme_mod( 'ambateno_historia_imagen', $theme_uri . '/assets/img/historia-taller.webp' );
 

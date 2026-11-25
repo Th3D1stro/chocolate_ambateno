@@ -1,12 +1,12 @@
 <?php
 /**
- * Importación inicial de demostración al activar el tema.
+ * Importación inicial de demostración y sincronización de catálogo al activar o actualizar el tema.
  *
- * Crea:
+ * Crea y mantiene sincronizados:
  * 1. Páginas Inicio (asignada como portada estática), Tienda (plantilla Tienda), Términos y Privacidad.
- * 2. 15 Productos con categorías, precios, pesos, etiquetas, ingredientes y nutrición.
- * 3. 9 Puntos de venta / establecimientos.
- * 4. Actualiza los enlaces permanentes sin duplicar datos si ya existen.
+ * 2. 15 Productos con categorías actualizadas (Sin gluten, Sin azúcar, Express), precios, pesos, etiquetas, ingredientes y nutrición.
+ * 3. 9 Puntos de venta / establecimientos (conservados intactos para uso futuro).
+ * 4. Actualiza los enlaces permanentes y sincroniza datos existentes sin duplicar.
  *
  * @package Chocolate_El_Ambateno
  */
@@ -15,11 +15,135 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function ambateno_run_demo_import() {
-	if ( get_option( 'ambateno_demo_data_imported' ) ) {
-		return;
+/**
+ * Sincroniza categorías y productos en la base de datos de WordPress.
+ * Lee directamente de ambateno_get_canonical_products_list() (fuente única de verdad).
+ * Inserta los que falten y actualiza los existentes con sus nuevas categorías y metadatos.
+ */
+function ambateno_sync_catalog_data() {
+	// 1. Asegurar la existencia de las categorías solicitadas
+	$cats = array(
+		'sin-gluten' => 'Sin gluten',
+		'sin-azucar' => 'Sin azúcar',
+		'express'    => 'Express',
+	);
+	foreach ( $cats as $slug => $nombre ) {
+		if ( ! term_exists( $slug, 'categoria_producto' ) ) {
+			wp_insert_term( $nombre, 'categoria_producto', array( 'slug' => $slug ) );
+		}
 	}
 
+	// 2. Sincronizar desde la lista canónica de cpt-productos.php
+	if ( ! function_exists( 'ambateno_get_canonical_products_list' ) ) {
+		return;
+	}
+	$productos      = ambateno_get_canonical_products_list();
+	$slugs_actuales = array();
+
+	foreach ( $productos as $p ) {
+		$slug = isset( $p['id'] ) ? $p['id'] : ( $p['slug'] ?? '' );
+		if ( empty( $slug ) ) {
+			continue;
+		}
+		$slugs_actuales[] = $slug;
+
+		$existing = get_page_by_path( $slug, OBJECT, 'ambateno_producto' );
+		if ( ! $existing ) {
+			$post_id = wp_insert_post(
+				array(
+					'post_title'   => $p['nombre'],
+					'post_name'    => $slug,
+					'post_content' => $p['descripcion'],
+					'post_status'  => 'publish',
+					'post_type'    => 'ambateno_producto',
+				)
+			);
+		} else {
+			$post_id = $existing->ID;
+			wp_update_post(
+				array(
+					'ID'           => $post_id,
+					'post_title'   => $p['nombre'],
+					'post_content' => $p['descripcion'],
+					'post_status'  => 'publish',
+				)
+			);
+		}
+
+		if ( $post_id && ! is_wp_error( $post_id ) ) {
+			update_post_meta( $post_id, '_ambateno_precio', $p['precio'] );
+			update_post_meta( $post_id, '_ambateno_peso', $p['peso'] );
+			$tags_str = is_array( $p['etiquetas'] ) ? implode( ', ', $p['etiquetas'] ) : ( $p['etiquetas'] ?? '' );
+			update_post_meta( $post_id, '_ambateno_etiquetas', $tags_str );
+			update_post_meta( $post_id, '_ambateno_ingredientes', $p['ingredientes'] ?? '' );
+
+			if ( is_array( $p['nutricion'] ) ) {
+				$n         = $p['nutricion'];
+				$nutri_str = "Porción: " . ( $n['porcion'] ?? '25 g' ) . "\n"
+					. "Energía: " . ( $n['energia'] ?? '140 kcal' ) . "\n"
+					. "Grasas: " . ( $n['grasas'] ?? '11 g' ) . "\n"
+					. "Carbohidratos: " . ( $n['carbohidratos'] ?? '7 g' ) . "\n"
+					. "Azúcares: " . ( $n['azucares'] ?? '0 g' ) . "\n"
+					. "Proteína: " . ( $n['proteina'] ?? '3 g' );
+				update_post_meta( $post_id, '_ambateno_nutricion', $nutri_str );
+			} elseif ( ! empty( $p['nutricion'] ) ) {
+				update_post_meta( $post_id, '_ambateno_nutricion', $p['nutricion'] );
+			}
+
+			$img_val = isset( $p['imagen'] ) ? basename( $p['imagen'] ) : 'producto-barra.webp';
+			update_post_meta( $post_id, '_ambateno_fallback_img', $img_val );
+
+			$cats_arr = isset( $p['categorias'] ) ? $p['categorias'] : ( $p['cats'] ?? array( 'sin-gluten' ) );
+			wp_set_object_terms( $post_id, $cats_arr, 'categoria_producto', false );
+		}
+	}
+
+	// Despublicar posts antiguos que ya no están en el array de productos
+	$old_posts = get_posts(
+		array(
+			'post_type'      => 'ambateno_producto',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		)
+	);
+	foreach ( $old_posts as $old ) {
+		if ( ! in_array( $old->post_name, $slugs_actuales, true ) ) {
+			wp_update_post(
+				array(
+					'ID'          => $old->ID,
+					'post_status' => 'draft',
+				)
+			);
+		}
+	}
+
+	$current_hash = md5( wp_json_encode( $productos ) );
+	update_option( 'ambateno_catalog_data_hash', $current_hash );
+	update_option( 'ambateno_catalog_version', defined( 'AMBATENO_CATALOG_VERSION' ) ? AMBATENO_CATALOG_VERSION : '2.0.0' );
+}
+
+/**
+ * Verifica si la base de datos requiere sincronización al iniciar WordPress.
+ * Si el array canónico de cpt-productos.php cambió de contenido, sincroniza de inmediato.
+ */
+function ambateno_check_catalog_sync() {
+	if ( ! function_exists( 'ambateno_get_canonical_products_list' ) ) {
+		return;
+	}
+	$productos    = ambateno_get_canonical_products_list();
+	$current_hash = md5( wp_json_encode( $productos ) );
+	$saved_hash   = get_option( 'ambateno_catalog_data_hash' );
+
+	if ( $saved_hash !== $current_hash ) {
+		ambateno_sync_catalog_data();
+	}
+}
+add_action( 'init', 'ambateno_check_catalog_sync', 20 );
+
+/**
+ * Proceso completo de importación inicial al activar el tema.
+ */
+function ambateno_run_demo_import() {
 	// 1. Crear Página Inicio
 	$inicio = get_page_by_path( 'inicio' );
 	if ( ! $inicio ) {
@@ -103,231 +227,10 @@ function ambateno_run_demo_import() {
 		);
 	}
 
-	// 5. Categorías de productos
-	$cats = array(
-		'negro'       => 'Chocolate negro',
-		'sin-azucar'  => 'Sin azúcar',
-		'snacks'      => 'Snacks',
-		'regalos'     => 'Regalos',
-		'profesional' => 'Línea profesional',
-	);
-	foreach ( $cats as $slug => $nombre ) {
-		if ( ! term_exists( $slug, 'categoria_producto' ) ) {
-			wp_insert_term( $nombre, 'categoria_producto', array( 'slug' => $slug ) );
-		}
-	}
+	// 5. Sincronizar catálogo y productos
+	ambateno_sync_catalog_data();
 
-	// 6. Productos (15 productos del catálogo original)
-	$nutri_barra_default = "Porción: 25 g\nEnergía: 140 kcal\nGrasas: 11 g\nCarbohidratos: 7 g\nAzúcares: 0 g\nProteína: 3 g";
-
-	$productos = array(
-		array(
-			'slug'         => 'tradicional-200',
-			'nombre'       => 'Chocolate tradicional El Ambateño 200 g',
-			'descripcion'  => 'Nuestra barra insignia: cacao fino de aroma molido en piedra, ideal para taza o para comer en cuadros.',
-			'precio'       => 6.50,
-			'peso'         => '200 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten',
-			'ingredientes' => 'Pasta de cacao, manteca de cacao, stevia, canela.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-barra.webp',
-		),
-		array(
-			'slug'         => 'barra-85',
-			'nombre'       => 'Barra 85% Cacao Intenso, sin azúcar',
-			'descripcion'  => 'Notas a frutos rojos y madera. Para quienes buscan el sabor más puro del cacao ecuatoriano.',
-			'precio'       => 4.75,
-			'peso'         => '50 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten, Vegano',
-			'ingredientes' => 'Pasta de cacao (85 %), manteca de cacao, eritritol.',
-			'nutricion'    => "Porción: 25 g\nEnergía: 150 kcal\nGrasas: 12 g\nCarbohidratos: 7 g\nAzúcares: 0 g\nProteína: 3 g",
-			'imagen'       => 'producto-barra.webp',
-		),
-		array(
-			'slug'         => 'barra-70',
-			'nombre'       => 'Barra 70% Cacao Puro, sin azúcar',
-			'descripcion'  => 'Equilibrada y sedosa, con un final suave a nuez. La favorita para empezar en el chocolate oscuro.',
-			'precio'       => 4.75,
-			'peso'         => '50 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten, Vegano',
-			'ingredientes' => 'Pasta de cacao (70 %), manteca de cacao, eritritol.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-barra.webp',
-		),
-		array(
-			'slug'         => 'barra-60-sal',
-			'nombre'       => 'Barra 60% con Sal y Nibs, sin azúcar',
-			'descripcion'  => 'Crocante de nibs tostados y un toque de sal marina que realza el dulzor natural del cacao.',
-			'precio'       => 3.50,
-			'peso'         => '40 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten',
-			'ingredientes' => 'Pasta de cacao (60 %), manteca de cacao, nibs de cacao, sal marina, eritritol.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-sabores.webp',
-		),
-		array(
-			'slug'         => 'barra-rosas',
-			'nombre'       => 'Barra con Pétalos de Rosa, sin azúcar',
-			'descripcion'  => 'Un homenaje a las rosas ecuatorianas: pétalos deshidratados sobre chocolate 65 %.',
-			'precio'       => 3.50,
-			'peso'         => '40 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten',
-			'ingredientes' => 'Pasta de cacao (65 %), manteca de cacao, pétalos de rosa, eritritol.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-sabores.webp',
-		),
-		array(
-			'slug'         => 'barra-hierbaluisa',
-			'nombre'       => 'Barra Hierbaluisa, sin azúcar',
-			'descripcion'  => 'Frescura cítrica de la hierbaluisa andina con la profundidad del cacao fino de aroma.',
-			'precio'       => 3.50,
-			'peso'         => '40 g',
-			'cats'         => array( 'negro', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten, Vegano',
-			'ingredientes' => 'Pasta de cacao (65 %), manteca de cacao, hierbaluisa, eritritol.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-sabores.webp',
-		),
-		array(
-			'slug'         => 'chocolate-taza',
-			'nombre'       => 'Chocolate a la taza tradicional',
-			'descripcion'  => 'Tabletas para disolver en leche caliente, con canela y clavo de olor como lo hacían las abuelas.',
-			'precio'       => 5.25,
-			'peso'         => '250 g',
-			'cats'         => array( 'negro' ),
-			'etiquetas'    => 'Libre de gluten',
-			'ingredientes' => 'Pasta de cacao, panela, canela, clavo de olor.',
-			'nutricion'    => "Porción: 25 g\nEnergía: 120 kcal\nGrasas: 7 g\nCarbohidratos: 13 g\nAzúcares: 10 g\nProteína: 2 g",
-			'imagen'       => 'producto-taza.webp',
-		),
-		array(
-			'slug'         => 'chips-coco',
-			'nombre'       => 'Chips de coco con cacao',
-			'descripcion'  => 'Láminas de coco tostado cubiertas de cacao. Un snack crocante para media mañana.',
-			'precio'       => 3.25,
-			'peso'         => '60 g',
-			'cats'         => array( 'snacks', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Vegano',
-			'ingredientes' => 'Coco deshidratado, cacao en polvo, aceite de coco, stevia.',
-			'nutricion'    => "Porción: 20 g\nEnergía: 110 kcal\nGrasas: 10 g\nCarbohidratos: 4 g\nAzúcares: 0 g\nProteína: 1 g",
-			'imagen'       => 'producto-sabores.webp',
-		),
-		array(
-			'slug'         => 'premezcla-brownie',
-			'nombre'       => 'Premezcla para brownie sin azúcar',
-			'descripcion'  => 'Solo agrega huevos y mantequilla. Brownies húmedos en 30 minutos, sin gluten ni azúcar.',
-			'precio'       => 6.00,
-			'peso'         => '350 g',
-			'cats'         => array( 'snacks', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten',
-			'ingredientes' => 'Harina de almendra, cacao en polvo, eritritol, polvo de hornear sin gluten.',
-			'nutricion'    => "Porción: 35 g\nEnergía: 150 kcal\nGrasas: 9 g\nCarbohidratos: 8 g\nAzúcares: 0 g\nProteína: 5 g",
-			'imagen'       => 'producto-taza.webp',
-		),
-		array(
-			'slug'         => 'crema-avellanas',
-			'nombre'       => 'Crema de avellanas y cacao',
-			'descripcion'  => 'Untable, intensa y sin aceite de palma. Para el pan del desayuno o directo de la cuchara.',
-			'precio'       => 7.50,
-			'peso'         => '220 g',
-			'cats'         => array( 'snacks' ),
-			'etiquetas'    => 'Libre de gluten',
-			'ingredientes' => 'Avellanas (45 %), cacao, panela, manteca de cacao.',
-			'nutricion'    => "Porción: 15 g\nEnergía: 90 kcal\nGrasas: 7 g\nCarbohidratos: 5 g\nAzúcares: 4 g\nProteína: 2 g",
-			'imagen'       => 'producto-taza.webp',
-		),
-		array(
-			'slug'         => 'nibs-cacao',
-			'nombre'       => 'Nibs de cacao tostado',
-			'descripcion'  => 'Trocitos de grano de cacao tostado: crocantes, amargos y perfectos sobre yogur o granola.',
-			'precio'       => 4.00,
-			'peso'         => '150 g',
-			'cats'         => array( 'snacks', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten, Vegano',
-			'ingredientes' => 'Nibs de cacao fino de aroma 100 %.',
-			'nutricion'    => "Porción: 15 g\nEnergía: 85 kcal\nGrasas: 7 g\nCarbohidratos: 3 g\nAzúcares: 0 g\nProteína: 2 g",
-			'imagen'       => 'producto-sabores.webp',
-		),
-		array(
-			'slug'         => 'gift-box',
-			'nombre'       => 'Gift Box Ambato (6 barras)',
-			'descripcion'  => 'Seis barras surtidas en caja de regalo con cinta oliva y tarjeta personalizada.',
-			'precio'       => 24.00,
-			'peso'         => '6 × 50 g',
-			'cats'         => array( 'regalos' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten',
-			'ingredientes' => 'Surtido de barras 60 %, 70 % y 85 % sin azúcar.',
-			'nutricion'    => $nutri_barra_default,
-			'imagen'       => 'producto-regalo.webp',
-		),
-		array(
-			'slug'         => 'caja-bombones',
-			'nombre'       => 'Caja de bombones artesanales',
-			'descripcion'  => 'Doce bombones rellenos de frutas andinas: mora, uvilla, maracuyá y naranjilla.',
-			'precio'       => 15.00,
-			'peso'         => '12 unidades',
-			'cats'         => array( 'regalos' ),
-			'etiquetas'    => 'Libre de gluten',
-			'ingredientes' => 'Chocolate 60 %, pulpa de frutas andinas, panela.',
-			'nutricion'    => "Porción: 2 bombones\nEnergía: 130 kcal\nGrasas: 8 g\nCarbohidratos: 12 g\nAzúcares: 9 g\nProteína: 2 g",
-			'imagen'       => 'producto-regalo.webp',
-		),
-		array(
-			'slug'         => 'cobertura-pro',
-			'nombre'       => 'Cobertura profesional 70% · 1 kg',
-			'descripcion'  => 'Botones de cobertura de alta fluidez para templado, bombonería y repostería profesional.',
-			'precio'       => 18.50,
-			'peso'         => '1 kg',
-			'cats'         => array( 'profesional', 'negro' ),
-			'etiquetas'    => 'Libre de gluten, Vegano',
-			'ingredientes' => 'Pasta de cacao (70 %), manteca de cacao, panela orgánica.',
-			'nutricion'    => "Porción: 25 g\nEnergía: 145 kcal\nGrasas: 10 g\nCarbohidratos: 10 g\nAzúcares: 7 g\nProteína: 2 g",
-			'imagen'       => 'producto-barra.webp',
-		),
-		array(
-			'slug'         => 'cacao-polvo-pro',
-			'nombre'       => 'Cacao en polvo profesional 500 g',
-			'descripcion'  => 'Cacao alcalinizado de color intenso para panadería, bebidas y decoración.',
-			'precio'       => 9.75,
-			'peso'         => '500 g',
-			'cats'         => array( 'profesional', 'sin-azucar' ),
-			'etiquetas'    => 'Sin azúcar, Libre de gluten, Vegano',
-			'ingredientes' => 'Cacao en polvo 100 % (22-24 % de grasa).',
-			'nutricion'    => "Porción: 10 g\nEnergía: 35 kcal\nGrasas: 2 g\nCarbohidratos: 1 g\nAzúcares: 0 g\nProteína: 2 g",
-			'imagen'       => 'producto-taza.webp',
-		),
-	);
-
-	foreach ( $productos as $p ) {
-		$existing = get_page_by_path( $p['slug'], OBJECT, 'ambateno_producto' );
-		if ( ! $existing ) {
-			$post_id = wp_insert_post(
-				array(
-					'post_title'   => $p['nombre'],
-					'post_name'    => $p['slug'],
-					'post_content' => $p['descripcion'],
-					'post_status'  => 'publish',
-					'post_type'    => 'ambateno_producto',
-				)
-			);
-			if ( $post_id && ! is_wp_error( $post_id ) ) {
-				update_post_meta( $post_id, '_ambateno_precio', $p['precio'] );
-				update_post_meta( $post_id, '_ambateno_peso', $p['peso'] );
-				update_post_meta( $post_id, '_ambateno_etiquetas', $p['etiquetas'] );
-				update_post_meta( $post_id, '_ambateno_ingredientes', $p['ingredientes'] );
-				update_post_meta( $post_id, '_ambateno_nutricion', $p['nutricion'] );
-				update_post_meta( $post_id, '_ambateno_fallback_img', $p['imagen'] );
-				wp_set_object_terms( $post_id, $p['cats'], 'categoria_producto' );
-			}
-		}
-	}
-
-	// 7. Puntos de Venta (9 establecimientos)
+	// 6. Puntos de Venta (9 establecimientos conservados intactos)
 	$locales = array(
 		array(
 			'nombre'  => 'Taller y tienda El Ambateño',
@@ -403,7 +306,7 @@ function ambateno_run_demo_import() {
 		}
 	}
 
-	// 8. Reescritura de enlaces permanentes
+	// 7. Reescritura de enlaces permanentes
 	flush_rewrite_rules();
 
 	// Marcar importación como realizada

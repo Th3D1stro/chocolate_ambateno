@@ -13,10 +13,10 @@ function ambateno_enqueue_scripts() {
 	$theme_version = wp_get_theme()->get( 'Version' );
 	$theme_uri     = get_template_directory_uri();
 
-	// Google Fonts: Fraunces + Work Sans
+	// Google Fonts: Poppins (400 Regular, 700 Bold)
 	wp_enqueue_style(
 		'ambateno-google-fonts',
-		'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap',
+		'https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap',
 		array(),
 		null
 	);

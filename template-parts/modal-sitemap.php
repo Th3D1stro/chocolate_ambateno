@@ -17,7 +17,7 @@ $secciones_landing = array(
 	'chocolate'   => array( 'label' => 'Nuestro chocolate', 'desc' => 'Presentaciones de 200 g' ),
 	'preparacion' => array( 'label' => 'Preparación', 'desc' => 'Paso a paso con el chef chocolatero' ),
 	'historia'    => array( 'label' => 'Nuestra historia', 'desc' => 'La marca, Ambato e INPHEC' ),
-	'donde'       => array( 'label' => 'Dónde encontrarlo', 'desc' => 'Tiendas, cafeterías y canales online' ),
+	// 'donde'       => array( 'label' => 'Dónde encontrarlo', 'desc' => 'Tiendas, cafeterías y canales online' ),
 	'contacto'    => array( 'label' => 'Contacto', 'desc' => 'Dirección, teléfono, mapa y formulario' ),
 );
 ?>

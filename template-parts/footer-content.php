@@ -20,7 +20,7 @@ $secciones = array(
 	'chocolate'   => __( 'Nuestro chocolate', 'chocolate-el-ambateno' ),
 	'preparacion' => __( 'Preparación', 'chocolate-el-ambateno' ),
 	'historia'    => __( 'Nuestra historia', 'chocolate-el-ambateno' ),
-	'donde'       => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ),
+	// 'donde'       => __( 'Dónde encontrarlo', 'chocolate-el-ambateno' ),
 	'contacto'    => __( 'Contacto', 'chocolate-el-ambateno' ),
 );
 ?>

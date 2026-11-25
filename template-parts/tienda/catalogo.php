@@ -11,11 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $categorias = array(
 	'todo'        => __( 'Ver todo', 'chocolate-el-ambateno' ),
-	'sin-gluten'       => __( 'Sin Gluten', 'chocolate-el-ambateno' ),
+	'sin-gluten'  => __( 'Sin gluten', 'chocolate-el-ambateno' ),
 	'sin-azucar'  => __( 'Sin azúcar', 'chocolate-el-ambateno' ),
-	'snacks'      => __( 'Snacks', 'chocolate-el-ambateno' ),
-	'regalos'     => __( 'Regalos', 'chocolate-el-ambateno' ),
-	'profesional' => __( 'Línea profesional', 'chocolate-el-ambateno' ),
+	'express'     => __( 'Express', 'chocolate-el-ambateno' ),
 );
 ?>
 <section aria-labelledby="titulo-catalogo" class="flex flex-col gap-6">
