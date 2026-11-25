@@ -228,7 +228,7 @@ function ambateno_get_canonical_products_list() {
 			'ingredientes' => 'Pasta de cacao (70 %), manteca de cacao, eritritol.',
 			'nutricion'    => $nutri_default,
 		),
-		// ===================== CHOCOLATE EXPRESS (MICROONDAS) =====================
+		
 array(
 	'id'           => 'express-150',
 	'nombre'       => 'Chocolate Express 150 g',
@@ -269,7 +269,7 @@ array(
 	'nutricion'    => $nutri_default,
 ),
 
-// ===================== CHOCOLATE DE SABORES =====================
+
 array(
 	'id'           => 'express-maracuya-150',
 	'nombre'       => 'Chocolate Express sabor Maracuyá 150 g',
@@ -349,7 +349,7 @@ array(
 	'nutricion'    => $nutri_default,
 ),
 
-// ===================== CHOCOLATE DE REPOSTERÍA =====================
+
 array(
 	'id'           => 'nibs-cacao-200',
 	'nombre'       => 'Nibs de cacao 200 g',

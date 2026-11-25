@@ -214,7 +214,7 @@ function ambateno_run_demo_import() {
 <h2>Datos que guardamos</h2>
 <p>Solo el contenido de tu carrito se guarda en el almacenamiento local de tu navegador para que no lo pierdas al recargar la página. Puedes borrarlo vaciando el carrito.</p>
 <h2>Tus derechos</h2>
-<p>Cuando la tienda sea real, podrás solicitar el acceso, la rectificación o la eliminación de tus datos escribiendo a hola@elambateno.ec, conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador.</p>";
+<p>Cuando la tienda sea real, podrás solicitar el acceso, la rectificación o la eliminación de tus datos escribiendo a chocolateelambatenio@gmail.com, conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador.</p>";
 
 		wp_insert_post(
 			array(
